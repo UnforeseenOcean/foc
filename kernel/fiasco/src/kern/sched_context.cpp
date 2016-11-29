@@ -13,7 +13,7 @@ public:
     void ready_enqueue(Sched_context *sc)
     {
       assert_kdb(cpu_lock.test());
-
+      printf("[sched_context.cpp] \n");
       // Don't enqueue threads which are already enqueued
       if (EXPECT_FALSE (sc->in_ready_list()))
         return;
@@ -47,6 +47,16 @@ public:
       enqueue(to, false);
     }
 
+    bool ready_empty(unsigned prio) //gmc
+    {
+  	  return empty(prio);
+    }
+
+    bool switch_ready_queue(Fp_list *list, unsigned prio) //gmc
+    {
+    	return switch_rq(list, prio);
+    }
+
     Context *schedule_in_progress;
   };
 
@@ -60,6 +70,9 @@ IMPLEMENTATION:
 #include "timeout.h"
 #include "globals.h"
 #include "logdefs.h"
+
+#include "kobject_dbg.h"
+#include "debug_output.h"
 
 DEFINE_PER_CPU Per_cpu<Sched_context::Ready_queue> Sched_context::rq;
 
@@ -125,7 +138,7 @@ Sched_context::Ready_queue::deblock(Sched_context *sc, Sched_context *crs, bool 
 
   if (res && lazy_q)
     return true;
-
+  printf("[sched_context.cpp: deblock] \n");
   ready_enqueue(sc);
   return res;
 }

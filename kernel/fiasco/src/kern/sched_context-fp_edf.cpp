@@ -93,6 +93,9 @@ public:
     void dequeue(Sched_context *);
     void requeue(Sched_context *sc);
 
+    bool empty(unsigned);  //gmc
+    bool switch_rq(Fp_list *list, unsigned prio); //gmc
+
     void set_idle(Sched_context *sc)
     { sc->_t = Deadline; sc->_sc.edf._p = 0; edf_rq.set_idle(sc); }
 
@@ -125,7 +128,7 @@ IMPLEMENTATION [sched_fp_edf]:
 PUBLIC
 Sched_context::Sched_context()
 {
-  dbgprintf("[Sched_context] Created default Sched_context object with type:Fixed_prio\n");
+  dbgprintf("[Sched_context] Created default Sched_context object with type:Fixed_prio1\n");
   _t = Fixed_prio;
   _sc.fp._p = Config::Default_prio;
   _sc.fp._q = Config::Default_time_slice;
@@ -141,7 +144,7 @@ Sched_context::Sched_context(Sc_type type, unsigned metric)
 {
   if (type == Fixed_prio)
   {
-    dbgprintf("[Sched_context] Created Sched_context object with type:Fixed_prio\n");
+    dbgprintf("[Sched_context] Created Sched_context object with type:Fixed_prio2\n");
     _t = Fixed_prio;
     _sc.fp._p = metric;
     _sc.fp._q = Config::Default_time_slice;
@@ -318,15 +321,17 @@ IMPLEMENT
 void
 Sched_context::Ready_queue_base::enqueue(Sched_context *sc, bool is_current)
 {
-  if (sc->_t == Fixed_prio)
-    fp_rq.enqueue(sc, is_current);
-  else
-  {
-    dbgprintf("[Sched_context::enqueue] Enqueuing Sched_context object in edf_rq (id:%lx, dl:%d)\n",
-               Kobject_dbg::obj_to_id(sc->context()),
-               sc->deadline());
-    edf_rq.enqueue(sc, is_current);
-  }
+	if (sc->_t == Fixed_prio){
+		dbgprintf("[Sched_context-fp_EDF::enqueue]\n");
+				fp_rq.enqueue(sc, is_current);
+	}
+	else
+	{
+		dbgprintf("[Sched_context::enqueue] Enqueuing Sched_context object in edf_rq (id:%lx, dl:%d)\n",
+				Kobject_dbg::obj_to_id(sc->context()),
+				sc->deadline());
+		edf_rq.enqueue(sc, is_current);
+	}
 }
 
 /**
@@ -353,6 +358,23 @@ Sched_context::Ready_queue_base::requeue(Sched_context *sc)
     fp_rq.requeue(sc);
   else
     edf_rq.requeue(sc);
+}
+
+IMPLEMENT
+bool
+Sched_context::Ready_queue_base::empty(unsigned prio) //gmc
+{
+  //if (sc->_t == Fixed_prio)
+    return fp_rq.empty(prio);
+//  else
+//    edf_rq.requeue(sc);
+}
+
+IMPLEMENT
+bool
+Sched_context::Ready_queue_base::switch_rq(Fp_list *list, unsigned prio) //gmc
+{
+	return fp_rq.switch_rq(list, prio);
 }
 
 PUBLIC inline
