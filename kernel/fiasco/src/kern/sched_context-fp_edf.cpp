@@ -322,7 +322,7 @@ void
 Sched_context::Ready_queue_base::enqueue(Sched_context *sc, bool is_current)
 {
 	if (sc->_t == Fixed_prio){
-		dbgprintf("[Sched_context-fp_EDF::enqueue]\n");
+//		dbgprintf("[Sched_context-fp_EDF::enqueue]\n");
 				fp_rq.enqueue(sc, is_current);
 	}
 	else
